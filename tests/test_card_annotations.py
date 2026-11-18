@@ -6,6 +6,16 @@ from scripts import catalog
 
 
 class CardAnnotationTests(unittest.TestCase):
+    def test_authentication_must_be_an_object_when_present(self):
+        for value in (None, [], "", False):
+            with self.subTest(value=value):
+                card = {"authentication": value, "tools": []}
+                with self.assertRaisesRegex(ValueError, "authentication must be an object"):
+                    catalog.card_tools(card)
+
+    def test_missing_authentication_is_allowed(self):
+        self.assertEqual(catalog.card_tools({"tools": []}), ([], "none", True))
+
     def test_oauth_schemes_must_be_a_list_of_strings(self):
         for schemes in ("oauth2", None, [123], {"oauth2": True}):
             with self.subTest(schemes=schemes):

@@ -283,7 +283,9 @@ def card(url: str) -> dict:
 
 def card_tools(info: dict) -> tuple[list[dict], str, bool]:
     """Tools, sign-in ("oauth" or "none") and read-only status from a server card. Raises on a malformed card."""
-    login = info.get("authentication") or {}
+    login = info.get("authentication", {})
+    if not isinstance(login, dict):
+        raise ValueError("authentication must be an object")
     if not isinstance(login.get("required", False), bool):
         raise ValueError("authentication.required must be a boolean")
     schemes = login.get("schemes", [])
