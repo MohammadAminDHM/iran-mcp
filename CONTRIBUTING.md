@@ -38,6 +38,7 @@ Run the same dependency-free checks as the Pull Request workflow from the repo r
 ```bash
 python -m unittest discover -s tests -v
 python scripts/check_json.py
+python scripts/check_counts.py
 ```
 
 These checks do not replace a clean rebuild, plugin validation, or the individual server tests.
