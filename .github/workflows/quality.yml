@@ -23,6 +23,20 @@ jobs:
       - name: Validate catalog counts
         run: python scripts/check_counts.py
 
+  plugin-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Claude Code
+        run: npm install --global @anthropic-ai/claude-code@2.1.278
+      - name: Validate marketplace
+        run: claude plugin validate .
+
   generated-files:
     runs-on: ubuntu-latest
     steps:

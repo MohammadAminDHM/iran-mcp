@@ -45,6 +45,8 @@ These checks do not replace a clean rebuild, plugin validation, or the individua
 The Pull Request workflow also checks a clean rebuild with initialized submodules and network access
 to PyPI and the hosted server cards. Run it locally using the pinned dependencies and regeneration
 commands listed above; inspect both tracked changes and any new generated files.
+It also runs `claude plugin validate .` with Claude Code 2.1.278. Bundle version warnings are expected;
+see [PLUGINS.md](PLUGINS.md).
 
 ### Every server
 
