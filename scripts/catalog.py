@@ -247,6 +247,7 @@ REMOTE = {
 def tools(src: pathlib.Path) -> list[dict]:
     """Every function decorated with @tool("Title") under src, in file order."""
     out = []
+    names = set()
     # sort by POSIX path: Windows sorts paths case-insensitively, CI doesn't, and the tool order must match
     for path in sorted(src.rglob("*.py"), key=lambda p: p.relative_to(src).as_posix()):
         for node in ast.parse(path.read_text(encoding="utf-8")).body:
@@ -266,6 +267,9 @@ def tools(src: pathlib.Path) -> list[dict]:
                         raise SystemExit(f"{path}:{node.lineno}: @tool title and read_only must be literals")
                     if not isinstance(read_only, bool):
                         raise SystemExit(f"{path}:{node.lineno}: @tool read_only must be a boolean")
+                    if node.name in names:
+                        raise SystemExit(f"{path}:{node.lineno}: duplicate tool name {node.name}")
+                    names.add(node.name)
                     out.append({"name": node.name, "title": title, "summary": doc, "read_only": read_only})
     return out
 
@@ -295,10 +299,14 @@ def card_tools(info: dict) -> tuple[list[dict], str, bool]:
     if login.get("required") and "oauth2" not in schemes:
         raise SystemExit(f"hosted servers must use OAuth or no sign-in, the card says {login}")
     found = []
+    names = set()
     for t in info["tools"]:
         # card text lands in committed SKILL.md files agents read: one line, bounded length, plain tool names
         if not re.fullmatch(r"[A-Za-z0-9_.-]{1,64}", t["name"]):
             raise ValueError(f"bad tool name {t['name']!r}")
+        if t["name"] in names:
+            raise ValueError(f"duplicate tool name {t['name']}")
+        names.add(t["name"])
         text = " ".join(t["description"].split())
         # the description's first sentence, like a package tool's first docstring line
         summary = re.split(r"(?<=\.)\s+", text, maxsplit=1)[0][:300]
