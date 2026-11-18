@@ -284,6 +284,8 @@ def card(url: str) -> dict:
 def card_tools(info: dict) -> tuple[list[dict], str, bool]:
     """Tools, sign-in ("oauth" or "none") and read-only status from a server card. Raises on a malformed card."""
     login = info.get("authentication") or {}
+    if not isinstance(login.get("required", False), bool):
+        raise ValueError("authentication.required must be a boolean")
     if login.get("required") and "oauth2" not in login.get("schemes", []):
         raise SystemExit(f"hosted servers must use OAuth or no sign-in, the card says {login}")
     found = []
