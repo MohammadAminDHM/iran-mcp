@@ -11,6 +11,7 @@ import pathlib
 import re
 import shutil
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.request
@@ -544,14 +545,43 @@ def plugins(catalog: list[dict], mcp: dict) -> dict:
 
     Returns each server's MCP config pinned to the version its plugin runs, for .mcp.json.
     """
-    # resolve every pin before deleting plugins/, so a PyPI failure leaves the old tree in place
+    out = ROOT / "plugins"
+    with tempfile.TemporaryDirectory(prefix=".catalog-plugins-", dir=ROOT) as directory:
+        staging = pathlib.Path(directory)
+        generated = staging / "plugins"
+        generated.mkdir()
+        pinned, marketplace = _build_plugins(catalog, mcp, generated)
+        manifest = ROOT / ".claude-plugin" / "marketplace.json"
+        manifest.parent.mkdir(exist_ok=True)
+        new_manifest = staging / "marketplace.json"
+        new_manifest.write_text(json.dumps(marketplace, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+        backup = ROOT / (staging.name + "-previous")
+        had_previous = out.exists()
+        if had_previous:
+            out.rename(backup)
+        installed = False
+        try:
+            generated.rename(out)
+            installed = True
+            new_manifest.replace(manifest)
+        except Exception:
+            if installed:
+                shutil.rmtree(out)
+            if had_previous:
+                backup.rename(out)
+            raise
+        if had_previous:
+            shutil.rmtree(backup)
+    return pinned
+
+
+def _build_plugins(catalog: list[dict], mcp: dict, out: pathlib.Path) -> tuple[dict, dict]:
+    """Build a complete plugin tree before replacing the existing one."""
     versions = {
         s["name"]: released(s["pypi"], s["version"], s["repository"].startswith(OWNER["url"] + "/"))
         for s in catalog
         if "url" not in s
     }
-    out = ROOT / "plugins"
-    shutil.rmtree(out, ignore_errors=True)
     entries, pinned = [], {}
 
     def write(name: str, manifest: dict, category: str) -> None:
@@ -612,10 +642,7 @@ def plugins(catalog: list[dict], mcp: dict) -> dict:
         "owner": OWNER,
         "plugins": entries,
     }
-    path = ROOT / ".claude-plugin" / "marketplace.json"
-    path.parent.mkdir(exist_ok=True)
-    path.write_text(json.dumps(marketplace, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
-    return pinned
+    return pinned, marketplace
 
 
 def sync_docs(catalog: list[dict], old_total: int, total: int) -> None:
