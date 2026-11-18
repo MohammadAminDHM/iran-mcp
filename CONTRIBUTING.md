@@ -31,6 +31,17 @@ in [PLUGINS.md](PLUGINS.md).
 - Commit messages follow Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`).
 - No secrets, tokens or personal data in code, tests, fixtures or screenshots.
 
+### Offline checks
+
+Run the same dependency-free checks as the Pull Request workflow from the repo root:
+
+```bash
+python -m unittest discover -s tests -v
+python scripts/check_json.py
+```
+
+These checks do not replace a clean rebuild, plugin validation, or the individual server tests.
+
 ### Every server
 
 - **Read-only for sites.** No login, basket, booking, order or payment. The tools hand the user a link to finish on
