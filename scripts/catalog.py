@@ -295,7 +295,9 @@ def card_tools(info: dict) -> tuple[list[dict], str, bool]:
         # the description's first sentence, like a package tool's first docstring line
         summary = re.split(r"(?<=\.)\s+", text, maxsplit=1)[0][:300]
         title = " ".join(str(t.get("title") or t["name"]).split())[:100]
-        read_only = bool((t.get("annotations") or {}).get("readOnlyHint"))
+        read_only = (t.get("annotations") or {}).get("readOnlyHint", False)
+        if not isinstance(read_only, bool):
+            raise ValueError(f"{t['name']}: readOnlyHint must be a boolean")
         found.append({"name": t["name"], "title": title, "summary": summary, "read_only": read_only})
     # like a package server with no required token: no sign-in, and no tool that changes anything
     return found, "oauth" if login.get("required") else "none", not login.get("required") and all(t["read_only"] for t in found)
