@@ -46,6 +46,16 @@ def helper():
         with tempfile.TemporaryDirectory() as directory:
             self.assertEqual(catalog.tools(Path(directory)), [])
 
+    def test_rejects_non_boolean_read_only_annotation(self):
+        for value in ('"False"', "1", "None"):
+            with self.subTest(value=value), tempfile.TemporaryDirectory() as directory:
+                src = Path(directory)
+                (src / "tools.py").write_text(
+                    f'@tool("Send", read_only={value})\ndef send():\n    pass\n', encoding="utf-8"
+                )
+                with self.assertRaisesRegex(SystemExit, "read_only must be a boolean"):
+                    catalog.tools(src)
+
 
 class ReleasedTests(unittest.TestCase):
     @staticmethod

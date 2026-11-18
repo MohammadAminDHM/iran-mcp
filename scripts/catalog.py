@@ -263,6 +263,8 @@ def tools(src: pathlib.Path) -> list[dict]:
                         title = ast.literal_eval(dec.args[0])
                     except ValueError:
                         raise SystemExit(f"{path}:{node.lineno}: @tool title and read_only must be literals")
+                    if not isinstance(read_only, bool):
+                        raise SystemExit(f"{path}:{node.lineno}: @tool read_only must be a boolean")
                     out.append({"name": node.name, "title": title, "summary": doc, "read_only": read_only})
     return out
 
