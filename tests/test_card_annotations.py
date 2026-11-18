@@ -6,6 +6,13 @@ from scripts import catalog
 
 
 class CardAnnotationTests(unittest.TestCase):
+    def test_oauth_schemes_must_be_a_list_of_strings(self):
+        for schemes in ("oauth2", None, [123], {"oauth2": True}):
+            with self.subTest(schemes=schemes):
+                card = {"authentication": {"required": True, "schemes": schemes}, "tools": []}
+                with self.assertRaisesRegex(ValueError, "authentication.schemes must be a list of strings"):
+                    catalog.card_tools(card)
+
     def test_rejects_non_boolean_authentication_required(self):
         for value in (0, "false", None):
             with self.subTest(value=value):

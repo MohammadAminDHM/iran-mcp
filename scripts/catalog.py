@@ -286,7 +286,10 @@ def card_tools(info: dict) -> tuple[list[dict], str, bool]:
     login = info.get("authentication") or {}
     if not isinstance(login.get("required", False), bool):
         raise ValueError("authentication.required must be a boolean")
-    if login.get("required") and "oauth2" not in login.get("schemes", []):
+    schemes = login.get("schemes", [])
+    if not isinstance(schemes, list) or not all(isinstance(scheme, str) for scheme in schemes):
+        raise ValueError("authentication.schemes must be a list of strings")
+    if login.get("required") and "oauth2" not in schemes:
         raise SystemExit(f"hosted servers must use OAuth or no sign-in, the card says {login}")
     found = []
     for t in info["tools"]:
