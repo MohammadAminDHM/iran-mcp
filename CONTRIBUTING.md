@@ -42,6 +42,9 @@ python scripts/check_counts.py
 ```
 
 These checks do not replace a clean rebuild, plugin validation, or the individual server tests.
+The Pull Request workflow also checks a clean rebuild with initialized submodules and network access
+to PyPI and the hosted server cards. Run it locally using the pinned dependencies and regeneration
+commands listed above; inspect both tracked changes and any new generated files.
 
 ### Every server
 
